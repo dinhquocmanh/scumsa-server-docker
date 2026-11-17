@@ -1,0 +1,33 @@
+services:
+  scum-server:
+    build:
+      context: .
+    image: local/scumsa-server:latest
+    container_name: scum-server
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    stop_signal: SIGINT
+    stop_grace_period: ${STOP_GRACE_PERIOD:-10m}
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+    ports:
+      - "${BIND_IP:?Set BIND_IP in .env}:${GAME_PORT:-7777}:${GAME_PORT:-7777}/udp"
+      - "${BIND_IP:?Set BIND_IP in .env}:${GAME_PORT_PLUS_1:-7778}:${GAME_PORT_PLUS_1:-7778}/udp"
+      - "${BIND_IP:?Set BIND_IP in .env}:${GAME_PORT_PLUS_2:-7779}:${GAME_PORT_PLUS_2:-7779}/udp"
+      - "${BIND_IP:?Set BIND_IP in .env}:${QUERY_PORT:-27015}:${QUERY_PORT:-27015}/udp"
+      - "${BIND_IP:?Set BIND_IP in .env}:${GAME_PORT_PLUS_2:-7779}:${GAME_PORT_PLUS_2:-7779}/tcp"
+      - "${PANEL_BIND_IP:-127.0.0.1}:${WEB_PORT:-8080}:8080/tcp"
+    volumes:
+      - ./data:/data
+    networks:
+      - scum_network
+networks:
+  scum_network:
+    name: ${COMPOSE_PROJECT_NAME:-scum}_network
+    driver: bridge
